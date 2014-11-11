@@ -1,5 +1,7 @@
 import numpy as np
 import math
+import matplotlib.pyplot as plot
+import random
 
 def power_method(A, initial_guess, tolerance, max_iterations):
     """
@@ -104,3 +106,62 @@ def determinant(A):
     c = A[1][0]
     d = A[1][1]
     return a * d - b * c
+
+def get_matrix():
+    """
+    Returns: a two by two matrix with a nonzero determinant
+    """
+    A = np.array(rand_matrix(-2,2))
+    if not determinant(A):
+        return get_matrix()
+    return A
+
+def rand_matrix(low, high):
+    """ 
+    Input:
+        low: the lower bound
+        high: the upper bound
+
+    Returns:
+        a two by two array whose elements are in [low, high]
+    """
+    return [[random.uniform(low, high) for i in range(2)] for i in range(2)]
+
+def main():
+    """
+    Performs the graphing actions of this part of the assignment
+    """
+    #initialize a 1000 matrices
+    matrices = []
+    while len(matrices) < 1000:
+        matrices.append(get_matrix())
+    inverses = [invert(m) for m in  matrices]
+
+    e = 0.00005
+    max_runs = 100
+    
+    # the next two for loops run power_method on all the matrices and their
+    # inverses. if the eigenvalue is found then the resulting data is added
+    # to the list
+    data = []
+    for m in matrices:
+        power_method_result = power_method(m, [1,1], e, max_runs)
+        if power_method_result:
+            data.append(power_method_result)
+    
+    inverse_data = []
+    for inverse in inverses:
+        power_method_result = power_method(inverse, [1,1], e, max_runs)
+        if power_method_result:
+            inverse_data.append(power_method_result)
+
+    plot.scatter([m['det'] for m in data],
+                 [m['trace'] for m in data])
+    plot.show()
+
+    plot.scatter([m['det'] for m in inverse_data],
+                 [m['trace'] for m in inverse_data])
+    plot.show()
+
+if __name__ == '__main__':
+    main()

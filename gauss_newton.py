@@ -1,6 +1,7 @@
 import math
 import numpy as np
 from util import FileReader
+from factorizations import qr_fact_househ
 
 def gauss_newton(filename, initial_guess, iterations, fit, partial):
     """
@@ -15,12 +16,16 @@ def gauss_newton(filename, initial_guess, iterations, fit, partial):
         the parameters giving the best approximation for the appropriate curve
         matching the given points
     """
+
+    # Read in the file and initialize the vector B, the residual vector, and the Jacobian
     points = FileReader().vectorize(filename)
     B = np.array(initial_guess)
     r = residuals(B, points, fit)
     J = jacobian(B , points, partial)
+
+    # Perform the necessary iterations
     for i in range(iterations):
-        Q, R = np.linalg.qr(J)
+        Q, R = qr_fact_househ(J)
         x = np.linalg.lstsq(R, np.dot(Q.transpose(), r))[0]
         B = B - x
         r = residuals(B, points, fit)

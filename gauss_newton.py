@@ -1,7 +1,6 @@
 import math
 import numpy as np
 from util import FileReader
-import matplotlib.pyplot as plot
 
 def gauss_newton(filename, initial_guess, iterations, fit, partial):
     """
@@ -19,47 +18,15 @@ def gauss_newton(filename, initial_guess, iterations, fit, partial):
     points = FileReader().vectorize(filename)
     B = np.array(initial_guess)
     r = residuals(B, points, fit)
-    J = jacobian(B , r, partial)
-
+    J = jacobian(B , points, partial)
     for i in range(iterations):
         Q, R = np.linalg.qr(J)
         x = np.linalg.lstsq(R, np.dot(Q.transpose(), r))[0]
         B = B - x
         r = residuals(B, points, fit)
-        J = jacobian(B, r, partial)
+        J = jacobian(B, points, partial)
         
     return B
-
-
-def qr_fact_househ(A):
-    """
-    Input:
-        A: a matrix
-    
-    Returns:
-        (q, r) the qr factorization of matrix A using householder reflections
-    """
-    pass
-
-def qr_fact_givens(A):
-    """
-    Input:
-        A: a matrix
-    
-    Returns:
-        (q, r) the qr factorization of A using givens rotations
-    """
-    pass
-
-def househ_reflection(column):
-    """
-    Input:
-        column: a column of a matrix
-
-    Returns:
-        H: the result of a householder reflection performed on the column
-    """
-    pass
 
 def residuals(B, points, curve):
     """
@@ -74,7 +41,7 @@ def residuals(B, points, curve):
     """
     return np.array([ y - curve(B, x) for x, y in points])
 
-def jacobian(B, R, partial):
+def jacobian(B, points, partial):
     """
     Input:
         B: vector (a, b, c)
@@ -84,7 +51,7 @@ def jacobian(B, R, partial):
     Returns:
         The jacobian formed by the inputs
     """
-    j = [[partial(B, index, r) for index, b in enumerate(B)] for r in R]
+    j = [[partial(B, index, p[0]) for index in range(len(B))] for p in points]
     return np.array(j)
 
 
@@ -97,10 +64,8 @@ def quadratic_fit(B, x):
     Returns:
         B(x)        
     """
-    a = B[0]
-    b = B[1]
-    c = B[2]
-    return (math.pow(a, 2)) + (b * x) + c
+    a, b , c = B
+    return (a * math.pow(x, 2)) + (b * x) + c
 
 def quadratic_partial(B, index, value):
     """
@@ -130,9 +95,7 @@ def exponential_fit(B, x):
     Returns:
        the exponential fit  B(x)        
     """
-    a = B[0]
-    b = B[1]
-    c = B[2]
+    a, b , c = B
     return a * math.pow(math.e, b * x) + c
 
 def exponential_partial(B, index, value):
@@ -165,11 +128,17 @@ def logarithmic_fit(B, x):
     Returns:
        the logarithmic fit  B(x)        
     """
-    a = B[0]
-    b = B[1]
-    c = B[2]
-    return a * math.log10(x + b) + c
+    a, b , c = B
+    return a * math.log(x + b) + c
 
+def logarithmic_partial(B, index, value):
+    a, b , c = B
+    if index == 0:
+        return -math.log(value + b)
+    if index == 1:
+        return -a / math.log(value + b)
+    if index == 2:
+        return -1
 
 def rational_fit(B, x):
     """
@@ -180,9 +149,7 @@ def rational_fit(B, x):
     Returns:
        the rational fit  B(x)        
     """
-    a = B[0]
-    b = B[1]
-    c = B[2]
+    a, b , c = B
     return ((a * x) / (x + b)) + c
 
 def rational_partial(B, index, value):
@@ -198,11 +165,12 @@ def rational_partial(B, index, value):
     """
     a, b , c = B
     if index == 0:
-        return -float(value) / (value + b)
+        return - value / (value + b)
     if index == 1:
-        return - value / math.pow(value + 1, 2)
+        return - (a * value) / math.pow(value + b, 2)
     if index == 2:
         return -1
 
 if __name__ == '__main__':
     a = gauss_newton('quadratic.txt', (1, 3, -1), 5, quadratic_fit, quadratic_partial)
+    print a

@@ -24,10 +24,8 @@ def qr_fact_househ(A):
 
     # Compute q by multiplying together all of the H's in order
     q = reduce(lambda x, y: np.dot(x,y), reflections[1:])
-
     r = np.dot(q.transpose(),A)
     return q, r
-
 
 def qr_fact_givens(A):
     """
@@ -37,7 +35,46 @@ def qr_fact_givens(A):
     Returns:
         (q, r) the qr factorization of A using givens rotations
     """
+    rows, cols = A.shape
+    reflections = []
+    reflections.append(A)
+    for i in range(0, cols):
+        for j in range(0, rows):
+            if i == j:
+                pivot = A[i][j]
+                pivot_pos = (i, j)
+            if i < j:
+                if A[j][i]:
+                    G = givens_matrix(rows, pivot, A[j][i], pivot_pos, (j, i))
+                    reflections.append(G)
+                    A = np.dot(G, A)
+    R = A
+    Q = reduce(lambda x, y: np.dot(x.transpose(), y.transpose()), reflections[1:])
+    return Q, R
+
+def givens_rotation():
     pass
+    
+def givens_matrix(rows, xval, yval, xpos, ypos):
+    """
+        Input:
+            A
+            x:
+            y:
+
+        Returns:
+            the givens matrix for the x and y
+    """
+    I = np.eye(rows)
+    c = xval / math.pow(math.pow(xval, 2) + math.pow(yval, 2), 0.5)
+    s = - yval / math.pow(math.pow(xval, 2) + math.pow(yval, 2), 0.5)
+    I[xpos[0]][xpos[0]] = c
+    I[ypos[0]][ypos[0]] = c
+    I[xpos[0]][ypos[0]] = -s
+    I[ypos[0]][xpos[0]] = s
+    return I
+
+
 
 def househ_reflection(column):
     """
@@ -99,15 +136,13 @@ def embed(matrix, minor):
     return matrix
 
 if __name__ == '__main__':
-    a = np.array([[2,-1,0],
-                  [1,2,-1],
-                  [2,-1,2]])
-    I = np.eye(4)
-    b = np.array([[1,2],[3,4]])
-    c = np.array([[1,2,3],
-                  [4,5,6],
-                  [7,8,9],
-                  [10,11,12],
-                  [1,3,5]])
-    q , r = qr_fact_househ(c)
+    b = np.array([[6, 5, 0],
+                  [5, 1, 4],
+                  [0, 4, 3]])
+    c = np.array([[12, -51, 4],
+                  [6, 167, -68],
+                  [-4, 24, -41]])
+    q , r = qr_fact_givens(c)
+    print q
+    print r
     print np.dot(q,r)

@@ -1,14 +1,15 @@
 import math
 import numpy as np
 from util import FileReader
-from factorizations import qr_fact_househ
+from factorizations import qr_fact_househ, qr_fact_givens
 
-def gauss_newton(filename, initial_guess, iterations, fit, partial):
+def gauss_newton(filename, initial_guess, iterations, qr, fit, partial):
     """
     Input:
         filename: the name of the file containing the points
         initial_guess: the initial guesses for for the parameters a, b, and c
         iterations: number of iterations to run the gauss-newton algorithm
+        qr: the qr factorization algorithm to use (function)
         fit: the curve to approximate (function)
         partial: the partial derivative of the curve (function)
 
@@ -25,7 +26,7 @@ def gauss_newton(filename, initial_guess, iterations, fit, partial):
 
     # Perform the necessary iterations
     for i in range(iterations):
-        Q, R = qr_fact_househ(J)
+        Q, R = qr(J)
         x = np.linalg.lstsq(R, np.dot(Q.transpose(), r))[0]
         B = B - x
         r = residuals(B, points, fit)
@@ -177,5 +178,6 @@ def rational_partial(B, index, value):
         return -1
 
 if __name__ == '__main__':
-    a = gauss_newton('quadratic.txt', (1, 3, -1), 5, quadratic_fit, quadratic_partial)
+    a = gauss_newton('quadratic.txt', (1, 3, -1), 5, 
+                     qr_fact_househ, quadratic_fit, quadratic_partial)
     print a

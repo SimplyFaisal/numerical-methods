@@ -27,11 +27,11 @@ def gauss_newton(filename, initial_guess, iterations, qr, fit, partial):
     # Perform the necessary iterations
     for i in range(iterations):
         Q, R = qr(J)
-        x = np.linalg.lstsq(R, np.dot(Q.transpose(), r))[0]
+        b = np.dot(Q.transpose(), r)
+        x = solve(R, b)
         B = B - x
         r = residuals(B, points, fit)
         J = jacobian(B, points, partial)
-        
     return B
 
 def residuals(B, points, curve):
@@ -45,7 +45,7 @@ def residuals(B, points, curve):
         the residual vector
 
     """
-    return np.array([ y - curve(B, x) for x, y in points])
+    return np.array([y - curve(B, x) for x, y in points])
 
 def jacobian(B, points, partial):
     """
@@ -60,6 +60,19 @@ def jacobian(B, points, partial):
     j = [[partial(B, index, p[0]) for index in range(len(B))] for p in points]
     return np.array(j)
 
+def solve(A, b):
+    """
+        Input:
+            A: a matrix
+            b: the vector to solve for
+
+        Returns:
+            x: the solution to Ax = b
+    """
+    z = b[2] / A[2][2]
+    y = (b[1] - (z * A[1][2])) / A[1][1]
+    x = (b[0] - (z * A[0][2]) - (y * A[0][1])) / A[0][0]
+    return x , y, z
 
 def quadratic_fit(B, x):
     """
@@ -104,7 +117,7 @@ def exponential_fit(B, x):
     a, b , c = B
     return a * math.pow(math.e, b * x) + c
 
-def exponential_partial(B, index, value):
+def exponential_partial(B, index, x):
     """
      Input:
         B: vector (a, b ,c)
@@ -119,9 +132,9 @@ def exponential_partial(B, index, value):
 
     a , b , c = B
     if index == 0:
-        return -math.pow(math.e, b * value)
+        return -math.pow(math.e, b * x)
     if index == 1:
-        return - value * a * math.pow(math.e, b * value)
+        return - x * a * math.pow(math.e, b * x)
     if index == 2:
         return -1 
 
@@ -137,12 +150,12 @@ def logarithmic_fit(B, x):
     a, b , c = B
     return a * math.log(x + b) + c
 
-def logarithmic_partial(B, index, value):
+def logarithmic_partial(B, index, x):
     a, b , c = B
     if index == 0:
-        return -math.log(value + b)
+        return -math.log(x + b)
     if index == 1:
-        return -a / math.log(value + b)
+        return -a / math.log(x + b)
     if index == 2:
         return -1
 
@@ -158,7 +171,7 @@ def rational_fit(B, x):
     a, b , c = B
     return ((a * x) / (x + b)) + c
 
-def rational_partial(B, index, value):
+def rational_partial(B, index, x):
     """
      Input:
         B: vector (a, b ,c)
@@ -171,9 +184,9 @@ def rational_partial(B, index, value):
     """
     a, b , c = B
     if index == 0:
-        return - value / (value + b)
+        return - x / (x + b)
     if index == 1:
-        return - (a * value) / math.pow(value + b, 2)
+        return (a * x) / math.pow(x + b, 2)
     if index == 2:
         return -1
 

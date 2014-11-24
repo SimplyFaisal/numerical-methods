@@ -71,7 +71,7 @@ def trace(A):
     """
 
     # since A will always be a 2 by 2 matrix we can just hardcode this
-    return A[0][0] * A[1][1]
+    return A[0][0] + A[1][1]
 
 def invert(A):
     """
@@ -155,12 +155,26 @@ def main():
         if power_method_result:
             inverse_data.append(power_method_result)
 
+    # Graph Matrices Data
+    plot.figure(1)
+    plot.title('Determinant vs. Trace')
+    plot.xlabel('Determinant')
+    plot.ylabel('Trace')
     plot.scatter([m['det'] for m in data],
-                 [m['trace'] for m in data])
-    plot.show()
+                 [m['trace'] for m in data],
+                 c = [m['iterations'] for m in data])
+    # plot.show()
+
+    # Graph Inverse Matrices Data
+    plot.figure(2)
+    plot.title(' Inverse Determinant vs. Trace')
+    plot.xlabel('Determinant')
+    plot.ylabel('Trace')
+    t = []
 
     plot.scatter([m['det'] for m in inverse_data],
-                 [m['trace'] for m in inverse_data])
+                 [m['trace'] for m in inverse_data],
+                 c = [m['iterations'] for m in inverse_data])
     plot.show()
 
 if __name__ == '__main__':

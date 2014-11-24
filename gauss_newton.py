@@ -51,7 +51,7 @@ def jacobian(B, points, partial):
     """
     Input:
         B: vector (a, b, c)
-        R: the residual vector
+        points: the points that are loaded from the file
         partial: the partial used to construct the jacobian
 
     Returns:
